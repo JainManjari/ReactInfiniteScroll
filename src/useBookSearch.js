@@ -1,25 +1,30 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-
 const useBookSearch = (query, pageNumber) => {
-
-    const retrieveBooks = async () => {
-        try {
-            let response = await axios.get(`https://openlibrary.org/search.json?q=${query}&p=${pageNumber}`)
-            console.log(response);
-            return response;
-        } catch(err) {
-            console.log("error in fetching books");
-        }
+  useEffect(() => {
+    if (query.length <= 0) {
+      return;
     }
-    useEffect(()=>{
-        let response = retrieveBooks();
+    let cancel;
+    axios({
+      url: `https://openlibrary.org/search.json?q=${query}&p=${pageNumber}`,
+      method: "get",
+      cancelToken: new axios.CancelToken((c) => (cancel = c)),
+    })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((err) => {
+        if(axios.isCancel(err)) {
+            return;
+        }
+        console.log("error in fetching books ", err);
+      });
+    return () => cancel();
+  }, [query, pageNumber]);
 
-    }, [query, pageNumber]);
-
-    return null;
-
-}
+  return null;
+};
 
 export default useBookSearch;
