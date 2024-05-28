@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import useBookSearch from "./useBookSearch";
 function App() {
   const [query, setQuery] = useState("");
@@ -6,7 +6,27 @@ function App() {
 
   const { isLoading, error, books, hasMore } = useBookSearch(query, pageNumber);
 
-  console.log(isLoading, error, books, hasMore);
+  const observer = useRef();
+
+  const lastBookRef = useCallback(
+    (node) => {
+      if (isLoading) {
+        return;
+      }
+      if (observer.current) {
+        observer.current.disconnect();
+      }
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPageNumber(pageNumber+1);
+        }
+      });
+      if (node) {
+        observer.current.observe(node);
+      }
+    },
+    [isLoading, hasMore]
+  );
 
   const handleQueryChange = (e) => {
     let value = e.target.value;
@@ -19,8 +39,16 @@ function App() {
   };
 
   const booksDisplayList = () => {
-    return books.map((book) => {
-      return <div key={book}>{book}</div>;
+    return books.map((book, index) => {
+      if (index + 1 === books.length) {
+        return (
+          <div ref={lastBookRef} key={book}>
+            {book}
+          </div>
+        );
+      } else {
+        return <div key={book}>{book}</div>;
+      }
     });
   };
 
@@ -28,7 +56,7 @@ function App() {
     <div>
       <input type="text" value={query} onChange={handleQueryChange} />
       {isLoading && <div>Loading...</div>}
-      {books.length>0 && booksDisplayList()}
+      {books.length > 0 && booksDisplayList()}
       {error && <div>Error</div>}
     </div>
   );

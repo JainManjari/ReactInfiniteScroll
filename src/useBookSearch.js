@@ -13,6 +13,10 @@ const useBookSearch = (query, pageNumber) => {
 
   useEffect(() => {
     if (query.length <= 0) {
+      setIsLoading(false);
+      setError(null);
+      setHasMore(false);
+      setBooks([]);
       return;
     }
     setIsLoading(true);
