@@ -4,7 +4,9 @@ function App() {
   const [query, setQuery] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
 
-  useBookSearch(query, pageNumber);
+  const { isLoading, error, books, hasMore } = useBookSearch(query, pageNumber);
+
+  console.log(isLoading, error, books, hasMore);
 
   const handleQueryChange = (e) => {
     let value = e.target.value;
@@ -16,12 +18,18 @@ function App() {
     }
   };
 
+  const booksDisplayList = () => {
+    return books.map((book) => {
+      return <div key={book}>{book}</div>;
+    });
+  };
+
   return (
     <div>
       <input type="text" value={query} onChange={handleQueryChange} />
-
-      <div>Loading...</div>
-      <div>Error</div>
+      {isLoading && <div>Loading...</div>}
+      {books.length>0 && booksDisplayList()}
+      {error && <div>Error</div>}
     </div>
   );
 }
